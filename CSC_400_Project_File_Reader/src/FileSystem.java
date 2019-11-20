@@ -13,6 +13,37 @@ import java.nio.*;
  */
 public class FileSystem {
     
+    class SuperBlock {
+        public final int blk_size;
+        
+        SuperBlock(int blkSize) {
+            blk_size = blkSize;
+        }
+        
+    }
+    //basic methods to convert decimal integer to a binary string
+    public static String dToB(int n) {
+        String s = "";
+        while (n > 0) {
+            s = n%2+s;
+            n /= 2;
+        }
+        while (s.length() < 8) {
+            s = "0"+s;
+        }
+        System.out.println(s);
+        return s;
+    }
+    
+    //basic methods to convert binary string to 
+    public static int bToD(String s) {
+        int n = 0;
+        for (int i = 0; i < s.length(); i++) {
+            n += (int) (s.charAt(s.length()-1-i) - '0') * (Math.pow(2, i));
+        }
+        return n;
+    }
+    
     public static void main(String[] args) throws IOException {
         //directory is otherwise System.getProperty("user.dir");
         File file = new File("C:\\Users\\Brian\\Downloads\\virtdisk");
@@ -25,11 +56,14 @@ public class FileSystem {
         int blkSize = 1024;
         
         //byte array with blkSize number of elements
-        byte[] data = new byte[blkSize];
+        //byte[] data = new byte[blkSize];
         
         //grab and read data from file equal to 1024 bytes
-        r.seek(blkSize);
-        r.readFully(data);
+        for (int j = 1; j < 3; j++) {
+            r.seek(blkSize*j);
+            byte[] data = new byte[blkSize];
+            r.readFully(data);
+        
         
         //fill our byte array with converted data
         byte[] dataConv = data;
@@ -41,23 +75,32 @@ public class FileSystem {
         String oof = "";
         
         //building directory path from our buffer data
-        for(int i = 0; i < 16; i++) {
-            int value = buffer.get(128 + i);
+        int sum = 0;
+        for(int i = 0; i < 1024; i++) {
+            int value = buffer.get(0 + i);
+            oof = dToB(value)+oof; 
+            sum = bToD(oof);
             //checking if value is null or not basically
-            if (value > 0) {
+            if (true && (i+1)%4==0) {
                 //adding character to our path
-                oof += (char)value + "";
+                //oof += (char)value + "";
+                System.out.println(sum);
+                oof = "";
+                sum = 0;
+                if (i == 11) {
+                    System.exit(0);
+                }
                 //doesnt retrieve char, does something weird instead
                 //System.out.println(buffer.getChar(128+i));
             }
         }
-        System.out.println(oof);
-        System.out.println("____");
-       
+        //System.out.println("block: "+j+" stuff: "+oof);
+        oof = "";
+        }
         
         while(true) {
             //displaying current path
-            System.out.print(oof + "/" + ">>>");
+            //System.out.print(oof + "/" + "...");
             
             //Enter data using BufferReader 
             BufferedReader readInput =  new BufferedReader(new InputStreamReader(System.in)); 
