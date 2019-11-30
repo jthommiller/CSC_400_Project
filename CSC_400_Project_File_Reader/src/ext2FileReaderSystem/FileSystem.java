@@ -8,12 +8,16 @@ package ext2FileReaderSystem;
 
 import java.io.*;
 import java.nio.*;
+import java.util.ArrayList;
+import java.util.Scanner;
 
 /**
  *
  * @author jthommiller
  */
 public class FileSystem {
+    static RandomAccessFile ext2Disk;
+    static GroupDescriptor groupDescriptor = new GroupDescriptor();
     
     //basic methods to convert decimal integer to a binary string
     public static String dToB(int n) {
@@ -39,6 +43,41 @@ public class FileSystem {
     }
     
     public static void main(String[] args) throws IOException {
+        Scanner in = new Scanner(System.in);
+        //Put disk path here
+        File filePath = new File("Macintosh HD/Users/jthommiller/Documents/CSC_400_Project/CSC_400_Project_File_Reader/virtdisk.dms");
+        ext2Disk = new RandomAccessFile(filePath, "r");
+        SuperBlock superblock = new SuperBlock(ext2Disk);
+        GroupDescriptor[] groupDescriptorTable = groupDescriptor.createGroupDescriptorTable(superblock, 2);
+        Directory rootDirectory = new Directory(superblock, groupDescriptorTable, 2);
+        Directory currentDirectory = rootDirectory;
+        ArrayList<Directory> subDirectories = new ArrayList();
+        ArrayList<Inode> subfiles = new ArrayList();
+        
+        int size = currentDirectory.files.size();
+        
+        for(int i = 0; i < size; i++){
+            int typeOfContents = currentDirectory.files.get(i).type;
+            //type = 1 -> file
+            if(typeOfContents == 1){
+                Inode newInode = new Inode(superblock, groupDescriptorTable, currentDirectory.files.get(i).inode);
+                subfiles.add(newInode);
+            }
+            //type = 2 -> directory
+            else if(typeOfContents == 2){
+                Directory newDirectory = new Directory(superblock, groupDescriptorTable, currentDirectory.files.get(i).inode);
+                subDirectories.add(newDirectory);
+            }
+        }
+
+        String commandLine = "";
+            
+            /*
+            COMMAND PROMPT MENU NEEDS TO GO HERE
+            */
+    }
+}
+        /*   
         //directory is otherwise System.getProperty("user.dir");
         File file = new File("C:\\Users\\Brian\\Downloads\\virtdisk");
         RandomAccessFile r = new RandomAccessFile(file, "r");
@@ -132,6 +171,6 @@ public class FileSystem {
                 System.out.println(cmd+" is not a command.");
                 break;
         }
-    }
+    }*/
     
-}
+//}
