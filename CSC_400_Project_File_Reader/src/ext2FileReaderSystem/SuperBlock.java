@@ -1,5 +1,12 @@
 package ext2FileReaderSystem;
 
+/*
+Authors: James Miller, Matthew Abney, Brian Spencer
+Date: 12-3-19
+Project: CSC 400 Group Project
+EXT2 FILE SYSTEM
+ */
+
 import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;

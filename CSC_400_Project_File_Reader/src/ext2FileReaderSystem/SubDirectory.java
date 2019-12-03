@@ -1,16 +1,14 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package ext2FileReaderSystem;
+
+/*
+Authors: James Miller, Matthew Abney, Brian Spencer
+Date: 12-3-19
+Project: CSC 400 Group Project
+EXT2 FILE SYSTEM
+ */
 
 import java.util.Arrays;
 
-/**
- *
- * @author jthommiller
- */
 public class SubDirectory {
     int inode;
     int length;
