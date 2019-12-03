@@ -19,6 +19,10 @@ public class Directory {
     ArrayList<SubDirectory> files = new ArrayList();
     Inode inode;
     
+    Directory(){
+        
+    }
+    
     Directory(SuperBlock superblock, GroupDescriptor[] groupDescriptorTable, int inodeNumber) throws IOException{
         inode = new Inode(superblock, groupDescriptorTable, inodeNumber);
         ReadFile rf = new ReadFile();

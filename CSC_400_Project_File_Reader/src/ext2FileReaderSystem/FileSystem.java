@@ -1,67 +1,45 @@
 package ext2FileReaderSystem;
 
 /*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
+Authors: James Miller, Matthew Abney, Brian Spencer
+Date: 12-3-19
+Project: CSC 400 Group Project
+EXT2 FILE SYSTEM
  */
 
 import java.io.*;
 import java.nio.*;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Scanner;
 
-/**
- *
- * @author jthommiller
- */
 public class FileSystem {
     static RandomAccessFile ext2Disk;
     static GroupDescriptor groupDescriptor = new GroupDescriptor();
     
-    //basic methods to convert decimal integer to a binary string
-    public static String dToB(int n) {
-        String s = "";
-        while (n > 0) {
-            s = n%2+s;
-            n /= 2;
-        }
-        while (s.length() < 8) {
-            s = "0"+s;
-        }
-        System.out.println(s);
-        return s;
-    }
-    
-    //basic methods to convert binary string to 
-    public static int bToD(String s) {
-        int n = 0;
-        for (int i = 0; i < s.length(); i++) {
-            n += (int) (s.charAt(s.length()-1-i) - '0') * (Math.pow(2, i));
-        }
-        return n;
-    }
-    
     public static void main(String[] args) throws IOException {
         Scanner in = new Scanner(System.in);
-        //Put disk path here
+        
+        //Put disk path here - ASK USER FOR DISK PATH 
+        //WHICH EVER WAY YOU DECIDE - I DONT CARE
         File filePath = new File("Macintosh HD/Users/jthommiller/Documents/CSC_400_Project/CSC_400_Project_File_Reader/virtdisk.dms");
+        
         ext2Disk = new RandomAccessFile(filePath, "r");
         SuperBlock superblock = new SuperBlock(ext2Disk);
         GroupDescriptor[] groupDescriptorTable = groupDescriptor.createGroupDescriptorTable(superblock, 2);
         Directory rootDirectory = new Directory(superblock, groupDescriptorTable, 2);
         Directory currentDirectory = rootDirectory;
         ArrayList<Directory> subDirectories = new ArrayList();
-        ArrayList<Inode> subfiles = new ArrayList();
+        ArrayList<Inode> subFiles = new ArrayList();
         
-        int size = currentDirectory.files.size();
+        int size = rootDirectory.files.size();
         
         for(int i = 0; i < size; i++){
             int typeOfContents = currentDirectory.files.get(i).type;
             //type = 1 -> file
             if(typeOfContents == 1){
                 Inode newInode = new Inode(superblock, groupDescriptorTable, currentDirectory.files.get(i).inode);
-                subfiles.add(newInode);
+                subFiles.add(newInode);
             }
             //type = 2 -> directory
             else if(typeOfContents == 2){
@@ -70,107 +48,156 @@ public class FileSystem {
             }
         }
 
-        String commandLine = "";
+        String commandLinePrompt;
+        String command;
+        String prompt;
+        
+        System.out.println("COMMAND MENU: ");
+        System.out.println("cd <File Path- Change Directory");
+        System.out.println("copy <File Name> - copy a file");
+        System.out.println("dir - List Contents Of Current Directory");
+        System.out.println("help - Display Command Menu");
+        System.out.println("root - Return To Root Directory");
+        System.out.println("stop - Quit File System");
+        
+        do{
+            System.out.println();
+            System.out.println("CMD>> ");
+            commandLinePrompt = in.nextLine();
             
-            /*
-            COMMAND PROMPT MENU NEEDS TO GO HERE
-            */
+            command = commandLinePrompt.substring(0, commandLinePrompt.indexOf(" "));
+            prompt = commandLinePrompt.substring(commandLinePrompt.indexOf(" ")+1);
+            int directorySize;
+            switch(command.toLowerCase()){
+                case "cd":                    
+                    int direcotrySize = currentDirectory.files.size();                    
+                    for(int i = 0; i < direcotrySize; i++){
+                        if(currentDirectory.files.get(i).name.equals(prompt)){
+                            Directory directory = new Directory(superblock, groupDescriptorTable, currentDirectory.files.get(i).inode);
+                            
+                            currentDirectory = directory;
+                            subFiles.clear();
+                            subDirectories.clear();
+                            
+                            direcotrySize = currentDirectory.files.size();
+                            
+                            for (int j = 0; j < direcotrySize; j++) {
+                                    int typeOfContents = currentDirectory.files.get(j).type;
+                                    //type = 1 -> file
+                                    if (typeOfContents == 1) {
+                                        Inode newInode = new Inode(superblock, groupDescriptorTable, currentDirectory.files.get(j).inode);
+                                        subFiles.add(newInode);
+                                    }
+                                    //type = 2 -> directory
+                                    else if (typeOfContents == 2) {
+                                        Directory newDir = new Directory(superblock, groupDescriptorTable, currentDirectory.files.get(j).inode);
+                                        subDirectories.add(newDir);
+                                    }
+                                }
+                        }
+                    }
+                case "copy":
+                    Directory d = new Directory();
+                    ReadFile rf = new ReadFile();
+                    directorySize = currentDirectory.files.size();
+                    for(int i = 0; i < directorySize; i++){
+                        if(currentDirectory.files.get(i).name.equals(prompt)){
+                            File file = new File(currentDirectory.files.get(i).name);
+                            RandomAccessFile newFile = new RandomAccessFile(file, "rw");
+                            ArrayList<Integer> blocks = new ArrayList();
+                            ArrayList<Integer> AllBlocks = new ArrayList();
+                            Inode fileInode = new Inode(superblock, groupDescriptorTable, currentDirectory.files.get(i).inode);
+                            
+                            for(int j = 0; j < 15; j++){
+                                if(i < 12){
+                                    blocks.add(fileInode.inode_blocks[i]);
+                                }
+                                else if(i == 12 && fileInode.inode_blocks[i] != 0){
+                                    ArrayList<Integer> singleIndirect = d.getIndirectData(superblock, fileInode.inode_blocks[i], 1);
+                                    size = singleIndirect.size();
+                                    for(int k = 0; k < size; k++){
+                                        blocks.add(singleIndirect.get(j));
+                                    }
+                                }
+                                else if(i == 13 && fileInode.inode_blocks[i] != 0){
+                                    ArrayList<Integer> doubleDirect = d.getIndirectData(superblock, fileInode.inode_blocks[i], 1);
+                                    size = doubleDirect.size();
+                                    for(int k = 0; k < size; k++){
+                                        blocks.add(doubleDirect.get(j));
+                                    }
+                                }
+                                else if(fileInode.inode_blocks[i] != 0){
+                                    ArrayList<Integer> tripleDirect = d.getIndirectData(superblock, fileInode.inode_blocks[i], 1);
+                                    size = tripleDirect.size();
+                                    for(int k = 0; k < size; k++){
+                                        blocks.add(tripleDirect.get(j));
+                                    }
+                                }
+                            }
+                            int arraySize = blocks.size();
+                            for(int j = 0; j < size; j++){
+                                int value = blocks.get(i);
+                                if(value != 0){
+                                    AllBlocks.add(value);
+                                }
+                            }
+                            arraySize = AllBlocks.size();
+                            byte[] temp = new byte[1024];
+                            for(int j = 0; j < size; j++){
+                                int index = 0;
+                                temp = rf.read(superblock.disk, AllBlocks.get(i), temp);
+                                newFile.write(temp);
+                            }
+                        }
+                    }
+                    
+                case "dir":
+                    directorySize = currentDirectory.files.size();
+                    for(int i = 0; i < directorySize; i++){
+                        if(currentDirectory.files.get(i).type == 1) {
+                            System.out.print(currentDirectory.files.get(i).name);
+                            System.out.print("                  ");
+                            Inode data = new Inode(superblock, groupDescriptorTable, currentDirectory.files.get(i).inode);
+                            System.out.print((int)Math.ceil(data.size/1024) + "mb");
+                        }
+                        else if(currentDirectory.files.get(i).type == 2) {
+                            if(currentDirectory.files.get(i).name.equals("."))
+                                continue;
+                            System.out.println(currentDirectory.files.get(i).name + "/");
+                        }
+                        System.out.println();
+                    }
+                case "help":
+                    System.out.println("COMMAND MENU: ");
+                    System.out.println("cd <File Path- Change Directory");
+                    System.out.println("copy <File Name> - copy a file");
+                    System.out.println("dir - List Contents Of Current Directory");
+                    System.out.println("help - Display Command Menu");
+                    System.out.println("root - Return To Root Directory");
+                    System.out.println("stop - Quit File System");
+                case "root":
+                    currentDirectory = rootDirectory;     
+                    directorySize = currentDirectory.files.size();
+        
+                    for(int i = 0; i < directorySize; i++){
+                        int typeOfContents = currentDirectory.files.get(i).type;
+                        //type = 1 -> file
+                        if(typeOfContents == 1){
+                            Inode newInode = new Inode(superblock, groupDescriptorTable, currentDirectory.files.get(i).inode);
+                            subFiles.add(newInode);
+                        }
+                        //type = 2 -> directory
+                        else if(typeOfContents == 2){
+                            Directory newDirectory = new Directory(superblock, groupDescriptorTable, currentDirectory.files.get(i).inode);
+                            subDirectories.add(newDirectory);
+                        }
+                    }
+                default:
+                    System.out.println("Error: Invalid Command, please enter a"
+                            + "valid command. For valid commands, enter 'help'.");
+            }
+            
+        }while (commandLinePrompt.toLowerCase().charAt(0) != 's' );
+        System.out.println();
     }
 }
-        /*   
-        //directory is otherwise System.getProperty("user.dir");
-        File file = new File("C:\\Users\\Brian\\Downloads\\virtdisk");
-        RandomAccessFile r = new RandomAccessFile(file, "r");
-        //need to convert virtdisk to a byte array entirely
-        //to correctly navigate it
-        
-        
-        //size of our block -- i think
-        int blkSize = 1024;
-        
-        //byte array with blkSize number of elements
-        //byte[] data = new byte[blkSize];
-        
-        //grab and read data from file equal to 1024 bytes
-        for (int j = 1; j < 3; j++) {
-            r.seek(blkSize*j);
-            byte[] data = new byte[blkSize];
-            r.readFully(data);
-        
-        
-        //fill our byte array with converted data
-        byte[] dataConv = data;
-        
-        //make a buffer for our converted data -- little endian is standard?
-        ByteBuffer buffer = ByteBuffer.wrap(dataConv);
-        buffer.order(ByteOrder.LITTLE_ENDIAN);
-        
-        String oof = "";
-        
-        //building directory path from our buffer data
-        int sum = 0;
-        for(int i = 0; i < 1024; i++) {
-            int value = buffer.get(0 + i);
-            oof = dToB(value)+oof; 
-            sum = bToD(oof);
-            //checking if value is null or not basically
-            if (true && (i+1)%4==0) {
-                //adding character to our path
-                //oof += (char)value + "";
-                System.out.println(sum);
-                oof = "";
-                sum = 0;
-                if (i == 11) {
-                    System.exit(0);
-                }
-                //doesnt retrieve char, does something weird instead
-                //System.out.println(buffer.getChar(128+i));
-            }
-        }
-        //System.out.println("block: "+j+" stuff: "+oof);
-        oof = "";
-        }
-        
-        while(true) {
-            //displaying current path
-            //System.out.print(oof + "/" + "...");
-            
-            //Enter data using BufferReader 
-            BufferedReader readInput =  new BufferedReader(new InputStreamReader(System.in)); 
-
-            // Reading data using readLine 
-            String cmd = readInput.readLine();
-
-            readInput(cmd);
-        }
-        
-    }
-    
-    
-    public static void readInput(String cmd) {
-        
-        //check the command entered by the user
-        switch(cmd.charAt(0)) {
-            //change directory to parent directory
-            case 'b':
-                //change directory to: cmd.substring(1);
-                break;
-            //change directory to child directory
-            case 'f':
-                //change directory to: cmd.substring(1);
-                break;
-            //copy a file's contents
-            case 'c':
-                //copy file named: cmd.substring(1);
-                break;
-            //close program
-            case 'e':
-                System.exit(0);
-                break;
-            default:
-                System.out.println(cmd+" is not a command.");
-                break;
-        }
-    }*/
-    
-//}
