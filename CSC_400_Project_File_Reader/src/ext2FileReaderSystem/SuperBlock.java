@@ -34,11 +34,23 @@ public class SuperBlock {
     byte[] volume_name;
     String volumeName;
     
+        //constructing our superblock using the virtdisk file
         SuperBlock(RandomAccessFile virtdisk) throws IOException {
+            //creating a readfile
             ReadFile rf = new ReadFile();
+            
+            //creating a byte buffer to assign attributes of our superblock
             ByteBuffer buffer;
+            
+            //byte array for our superblock of size 1024
             byte[] superblock = new byte[1024];
+            
+            //assigning virtdisk parameter to disk var
             disk = virtdisk;
+            
+            //essentially assigning each component's value based on the
+            //documentation provided for the project
+            //each attribute is indexed specifically
             superblock = rf.read(virtdisk, 1, superblock);
             inode_count = rf.processData(superblock, 0, 3);
             block_count = rf.processData(superblock, 4, 7);
