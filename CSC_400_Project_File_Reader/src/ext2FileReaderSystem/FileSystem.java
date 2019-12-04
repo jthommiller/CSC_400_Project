@@ -18,10 +18,12 @@ public class FileSystem {
     public static void main(String[] args) throws IOException {
         Scanner in = new Scanner(System.in);
         
-        //Put disk path here - ASK USER FOR DISK PATH 
-        //WHICH EVER WAY YOU DECIDE - I DONT CARE
-        ///Users/jthommiller/Documents/CSC_400_Project/CSC_400_Project_File_Reader
-        File filePath = new File("/Users/jthommiller/Documents/CSC_400_Project/CSC_400_Project_File_Reader/virtdisk.dms");
+        //default system directory
+        String path = System.getProperty("user.dir");
+        
+        // subfolders to our src, package, and file
+        File filePath = new File(path + "//src//ext2FileReaderSystem//virtdisk");
+        
         RandomAccessFile ext2Disk = new RandomAccessFile(filePath, "r");
         SuperBlock superblock = new SuperBlock(ext2Disk);
         GroupDescriptor groupDescriptor = new GroupDescriptor();
