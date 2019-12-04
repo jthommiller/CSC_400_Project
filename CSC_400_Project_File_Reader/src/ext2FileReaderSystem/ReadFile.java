@@ -1,5 +1,12 @@
 package ext2FileReaderSystem;
 
+/*
+Authors: James Miller, Matthew Abney, Brian Spencer
+Date: 12-3-19
+Project: CSC 400 Group Project
+EXT2 FILE SYSTEM
+ */
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
@@ -11,9 +18,10 @@ import java.nio.ByteOrder;
 public class ReadFile {
     
     ReadFile(){
-        
+        //default constructor -- no parameters
     }
     
+    //reading (and returning data as a byte array) from file
     public byte[] read(RandomAccessFile system, int offset, byte[] data) throws IOException{
         long pointer = system.getFilePointer();
         int readSet = 1024 * offset;
@@ -28,6 +36,7 @@ public class ReadFile {
         return data;
     }
     
+     //processing data as binary bits
     public int processData(byte[] data, int start, int end){
         ByteBuffer buffer = ByteBuffer.wrap(data);
         buffer.order(ByteOrder.LITTLE_ENDIAN);
@@ -44,6 +53,7 @@ public class ReadFile {
         return 0;
     }
     
+    //reading bytes in little endian mode -- LSB on right -- to properly read data 
     public byte[] convertToLittleEndian(byte[] data){
         ByteBuffer buffer = ByteBuffer.wrap(data);
         buffer.order(ByteOrder.LITTLE_ENDIAN);
@@ -53,6 +63,7 @@ public class ReadFile {
         return orderedData;
     }
     
+    //converting a byte array to a string 
     public String convertToString(byte[] data){
         String temp = "";
         int end = data.length;
@@ -65,6 +76,7 @@ public class ReadFile {
         return temp;
     }
     
+    //converting a byte array to a binary string
     public String convertByteArrayToBinaryString(byte[] data, int start, int end){
         String binaryString = "";
         for(int i = start; i<= end; i++){
@@ -75,6 +87,7 @@ public class ReadFile {
         return binaryString;
     }
     
+    //converting a binary string to an integer
     public int convertBinaryStringToInteger(String binary){
         int pow = 0, sum = 0;
         int length = binary.length();
