@@ -1,36 +1,51 @@
 package ext2FileReaderSystem;
 
-import java.io.BufferedReader;
-import java.io.File;
+/*
+Authors: James Miller, Matthew Abney, Brian Spencer
+Date: 12-3-19
+Project: CSC 400 Group Project
+EXT2 FILE SYSTEM - File reading and processing class that reads from a RandomAccessFile
+                   and processes data from byte arrays
+ */
+
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
 public class ReadFile {
     
+    // Read File Constructor to allow access to class functions
     ReadFile(){
         
     }
     
+    // Function to read from a Random Access File
     public byte[] read(RandomAccessFile system, int offset, byte[] data) throws IOException{
+        // Saves Pointer
         long pointer = system.getFilePointer();
+        // Finds new pointer to begin reading from
         int readSet = 1024 * offset;
         system.seek(readSet);
         try{
+            //reads data into byte array
             system.readFully(data);
         }
         catch(IOException e){
             e.printStackTrace();
         }
+        // Return to original pointer to maintain stability of the RandomAccessFile
         system.seek(pointer);
+        // Returns byte array
         return data;
     }
     
+    // Function to process a given amount from a  byte array at a specific offset
     public int processData(byte[] data, int start, int end){
+        // Byte buffer object to wrap byte array and transpose it to Little Endian Format
         ByteBuffer buffer = ByteBuffer.wrap(data);
         buffer.order(ByteOrder.LITTLE_ENDIAN);
+        // Switch statement to read data from a length of 1, 2, or 4 bytes
         switch(end-start+1){
             case 1:
                 return buffer.get(start);
@@ -41,9 +56,11 @@ public class ReadFile {
             default:
                 break;
         }
+        // Returns 0 if there is an error
         return 0;
     }
     
+    // Function that converts a byte array to Little Endian format
     public byte[] convertToLittleEndian(byte[] data){
         ByteBuffer buffer = ByteBuffer.wrap(data);
         buffer.order(ByteOrder.LITTLE_ENDIAN);
@@ -53,6 +70,7 @@ public class ReadFile {
         return orderedData;
     }
     
+    // Function that converts a byte array to string
     public String convertToString(byte[] data){
         String temp = "";
         int end = data.length;
@@ -63,26 +81,5 @@ public class ReadFile {
                 temp += (char)bytePosition;
             }
         return temp;
-    }
-    
-    public String convertByteArrayToBinaryString(byte[] data, int start, int end){
-        String binaryString = "";
-        for(int i = start; i<= end; i++){
-            String byteToString = String.format("%8s", Integer.toBinaryString(data[i] & 0xFF));
-            byteToString = byteToString.replace(' ', '0');
-            binaryString = byteToString + binaryString;
-        }
-        return binaryString;
-    }
-    
-    public int convertBinaryStringToInteger(String binary){
-        int pow = 0, sum = 0;
-        int length = binary.length();
-        for(int i = 0; i < length; i++){
-            if(binary.charAt(i) == '1')
-                pow = (int)Math.pow(2, length-i-1);
-                sum += pow;
-        }
-        return sum;
     }
 }

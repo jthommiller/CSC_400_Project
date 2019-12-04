@@ -29,26 +29,6 @@ public class SuperBlock {
     
         SuperBlock(RandomAccessFile virtdisk) throws IOException {
             ReadFile rf = new ReadFile();
-            
-            /*byte[] data = new byte[1024];
-            
-            virtdisk.seek(1024);
-            virtdisk.readFully(data);
-            
-            ByteBuffer buffer = ByteBuffer.wrap(data);
-            buffer.order(ByteOrder.LITTLE_ENDIAN);
-            
-            byte[] characters = new byte[16];
-            
-            //for loop
-            
-            String volumeRootName = new String(characters);
-            
-            inode_count = buffer.getInt(0);
-            
-            System.out.println(inode_count);*/
-            
-            //inode_count = buffer.getInt(0);
             disk = virtdisk;
             byte[] superblock = new byte[1024];
             superblock = rf.read(virtdisk, 1, superblock);
