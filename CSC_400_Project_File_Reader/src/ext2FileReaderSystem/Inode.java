@@ -20,8 +20,12 @@ public class Inode {
     int inode_data_blocks;
     int[] inode_blocks = new int[15];
     
+    //constructing Inode using data byte array
     Inode(byte[] data){
+        //creating a readfile
         ReadFile rf = new ReadFile();
+        
+        //essentially setting each attribute based on static index values for Inodes
         mode = rf.processData(data, 0, 1);
         UID = rf.processData(data, 2, 3);
         size = rf.processData(data, 4, 7);
@@ -35,8 +39,13 @@ public class Inode {
         }
     }
     
+    //constructing inode table using superblock and group descriptor primarily
     Inode(SuperBlock superblock, GroupDescriptor[] GroupDescriptorTable, int inodeNumber) throws IOException{
+        //creating a readfile
         ReadFile rf = new ReadFile();
+        
+        
+        //essentially setting each attribute based on static index values for Inodes
         int group = (inodeNumber-1)/superblock.inode_per_group;
         
         int inodesPerBlock = superblock.block_size/superblock.inode_size;
@@ -50,6 +59,7 @@ public class Inode {
         byte[] inodDiskData = rf.read(superblock.disk, (block*superblock.block_size/1024), inodeDiskData);
         byte[] inodeData = Arrays.copyOfRange(inodeDiskData, (superblock.inode_size * index), (superblock.inode_size*(index+1)));
         
+        //attributes based on inodeData that was created from reading our readfile using superblock information
         mode = rf.processData(inodeData, 0, 1);
         UID = rf.processData(inodeData, 2, 3);
         size = rf.processData(inodeData, 4, 7);
