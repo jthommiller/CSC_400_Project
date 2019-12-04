@@ -17,8 +17,12 @@ public class SubDirectory {
     byte[] byte_name;
     String name;
     
+    //constructing a subdirectory using a byte array
     SubDirectory(byte[] data){
+        //creating a readfile
         ReadFile rf = new ReadFile();
+        
+        //attributes set using static index values
         inode = rf.processData(data, 0, 3);
         length = rf.processData(data, 4, 5);
         length_of_name = rf.processData(data, 6, 6);
