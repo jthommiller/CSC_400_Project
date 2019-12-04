@@ -1,5 +1,12 @@
 package ext2FileReaderSystem;
 
+/*
+Authors: James Miller, Matthew Abney, Brian Spencer
+Date: 12-3-19
+Project: CSC 400 Group Project
+EXT2 FILE SYSTEM
+ */
+
 import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
@@ -27,30 +34,20 @@ public class SuperBlock {
     byte[] volume_name;
     String volumeName;
     
+        //constructing our superblock using the virtdisk file
         SuperBlock(RandomAccessFile virtdisk) throws IOException {
-            ReadFile rf = new ReadFile();
+            //creating a readfile
+            ReadFile rf = new ReadFile();'
             
-            /*byte[] data = new byte[1024];
-            
-            virtdisk.seek(1024);
-            virtdisk.readFully(data);
-            
-            ByteBuffer buffer = ByteBuffer.wrap(data);
-            buffer.order(ByteOrder.LITTLE_ENDIAN);
-            
-            byte[] characters = new byte[16];
-            
-            //for loop
-            
-            String volumeRootName = new String(characters);
-            
-            inode_count = buffer.getInt(0);
-            
-            System.out.println(inode_count);*/
-            
-            //inode_count = buffer.getInt(0);
+            //assigning virtdisk parameter to disk var
             disk = virtdisk;
+            
+            //byte array for our superblock of size 1024
             byte[] superblock = new byte[1024];
+            
+            //essentially assigning each component's value based on the
+            //documentation provided for the project
+            //each attribute is indexed specifically
             superblock = rf.read(virtdisk, 1, superblock);
             inode_count = rf.processData(superblock, 0, 3);
             block_count = rf.processData(superblock, 4, 7);
