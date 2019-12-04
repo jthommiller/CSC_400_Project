@@ -20,9 +20,11 @@ public class FileSystem {
     public static void main(String[] args) throws IOException {
         Scanner in = new Scanner(System.in);
         
-        //Put disk path here - ASK USER FOR DISK PATH 
-        //WHICH EVER WAY YOU DECIDE - I DONT CARE
-        File filePath = new File("Macintosh HD/Users/jthommiller/Documents/CSC_400_Project/CSC_400_Project_File_Reader/virtdisk.dms");
+        //default system directory
+        String path = System.getProperty("user.dir");
+        
+        // subfolders to our src, package, and file
+        File filePath = new File(path + "//src//ext2FileReaderSystem//virtdisk");
     
         // Sets up information we need
         ext2Disk = new RandomAccessFile(filePath, "r");
