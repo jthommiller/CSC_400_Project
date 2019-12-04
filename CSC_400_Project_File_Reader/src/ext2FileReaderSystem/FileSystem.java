@@ -8,9 +8,7 @@ EXT2 FILE SYSTEM
  */
 
 import java.io.*;
-import java.nio.*;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Scanner;
 
 public class FileSystem {
