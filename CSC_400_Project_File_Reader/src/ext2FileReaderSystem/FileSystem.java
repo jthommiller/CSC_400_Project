@@ -14,18 +14,17 @@ import java.util.Arrays;
 import java.util.Scanner;
 
 public class FileSystem {
-    static RandomAccessFile ext2Disk;
-    static GroupDescriptor groupDescriptor = new GroupDescriptor();
     
     public static void main(String[] args) throws IOException {
         Scanner in = new Scanner(System.in);
         
         //Put disk path here - ASK USER FOR DISK PATH 
         //WHICH EVER WAY YOU DECIDE - I DONT CARE
-        File filePath = new File("Macintosh HD/Users/jthommiller/Documents/CSC_400_Project/CSC_400_Project_File_Reader/virtdisk.dms");
-        
-        ext2Disk = new RandomAccessFile(filePath, "r");
+        ///Users/jthommiller/Documents/CSC_400_Project/CSC_400_Project_File_Reader
+        File filePath = new File("/Users/jthommiller/Documents/CSC_400_Project/CSC_400_Project_File_Reader/virtdisk.dms");
+        RandomAccessFile ext2Disk = new RandomAccessFile(filePath, "r");
         SuperBlock superblock = new SuperBlock(ext2Disk);
+        GroupDescriptor groupDescriptor = new GroupDescriptor();
         GroupDescriptor[] groupDescriptorTable = groupDescriptor.createGroupDescriptorTable(superblock, 2);
         Directory rootDirectory = new Directory(superblock, groupDescriptorTable, 2);
         Directory currentDirectory = rootDirectory;
@@ -49,8 +48,8 @@ public class FileSystem {
         }
 
         String commandLinePrompt;
-        String command;
-        String prompt;
+        String command = "";
+        String prompt = "";
         
         System.out.println("COMMAND MENU: ");
         System.out.println("cd <File Path- Change Directory");
@@ -62,11 +61,17 @@ public class FileSystem {
         
         do{
             System.out.println();
-            System.out.println("CMD>> ");
+            System.out.print("CMD>> ");
             commandLinePrompt = in.nextLine();
             
+            if(commandLinePrompt.length() == 3 || commandLinePrompt.length() == 4){
+                command = commandLinePrompt;
+            }
+            else{
             command = commandLinePrompt.substring(0, commandLinePrompt.indexOf(" "));
             prompt = commandLinePrompt.substring(commandLinePrompt.indexOf(" ")+1);
+            }
+            
             int directorySize;
             switch(command.toLowerCase()){
                 case "cd":                    
@@ -82,20 +87,22 @@ public class FileSystem {
                             direcotrySize = currentDirectory.files.size();
                             
                             for (int j = 0; j < direcotrySize; j++) {
-                                    int typeOfContents = currentDirectory.files.get(j).type;
-                                    //type = 1 -> file
-                                    if (typeOfContents == 1) {
-                                        Inode newInode = new Inode(superblock, groupDescriptorTable, currentDirectory.files.get(j).inode);
-                                        subFiles.add(newInode);
-                                    }
-                                    //type = 2 -> directory
-                                    else if (typeOfContents == 2) {
-                                        Directory newDir = new Directory(superblock, groupDescriptorTable, currentDirectory.files.get(j).inode);
-                                        subDirectories.add(newDir);
-                                    }
+                                int typeOfContents = currentDirectory.files.get(j).type;
+                                //type = 1 -> file
+                                if (typeOfContents == 1) {
+                                    Inode newInode = new Inode(superblock, groupDescriptorTable, currentDirectory.files.get(j).inode);
+                                    subFiles.add(newInode);
                                 }
+                                //type = 2 -> directory
+                                else if (typeOfContents == 2) {
+                                    Directory newDir = new Directory(superblock, groupDescriptorTable, currentDirectory.files.get(j).inode);
+                                    subDirectories.add(newDir);
+                                }
+                            }
+                            break;
                         }
                     }
+                    break;
                 case "copy":
                     Directory d = new Directory();
                     ReadFile rf = new ReadFile();
@@ -150,7 +157,7 @@ public class FileSystem {
                             }
                         }
                     }
-                    
+                    break;
                 case "dir":
                     directorySize = currentDirectory.files.size();
                     for(int i = 0; i < directorySize; i++){
@@ -158,15 +165,15 @@ public class FileSystem {
                             System.out.print(currentDirectory.files.get(i).name);
                             System.out.print("                  ");
                             Inode data = new Inode(superblock, groupDescriptorTable, currentDirectory.files.get(i).inode);
-                            System.out.print((int)Math.ceil(data.size/1024) + "mb");
+                            System.out.println((int)Math.ceil((double)data.size/(double)1024) + "mb");
                         }
                         else if(currentDirectory.files.get(i).type == 2) {
                             if(currentDirectory.files.get(i).name.equals("."))
                                 continue;
                             System.out.println(currentDirectory.files.get(i).name + "/");
                         }
-                        System.out.println();
                     }
+                    break;
                 case "help":
                     System.out.println("COMMAND MENU: ");
                     System.out.println("cd <File Path- Change Directory");
@@ -175,6 +182,7 @@ public class FileSystem {
                     System.out.println("help - Display Command Menu");
                     System.out.println("root - Return To Root Directory");
                     System.out.println("stop - Quit File System");
+                    break;
                 case "root":
                     currentDirectory = rootDirectory;     
                     directorySize = currentDirectory.files.size();
@@ -192,9 +200,13 @@ public class FileSystem {
                             subDirectories.add(newDirectory);
                         }
                     }
+                    break;
+                case "stop":
+                    break;
                 default:
                     System.out.println("Error: Invalid Command, please enter a"
                             + "valid command. For valid commands, enter 'help'.");
+                    break;
             }
             
         }while (commandLinePrompt.toLowerCase().charAt(0) != 's' );

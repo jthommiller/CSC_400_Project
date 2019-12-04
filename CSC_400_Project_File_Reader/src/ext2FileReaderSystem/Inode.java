@@ -40,7 +40,7 @@ public class Inode {
         int index = (inodeNumber-1) % inodesPerBlock;
         
         byte[] inodeDiskData = new byte[1024];
-        byte[] inodDiskData = rf.read(superblock.disk, (block*superblock.block_size/1024), inodeDiskData);
+        inodeDiskData = rf.read(superblock.disk, (block*superblock.block_size/1024), inodeDiskData);
         byte[] inodeData = Arrays.copyOfRange(inodeDiskData, (superblock.inode_size * index), (superblock.inode_size*(index+1)));
         
         mode = rf.processData(inodeData, 0, 1);
@@ -49,8 +49,8 @@ public class Inode {
         GID = rf.processData(inodeData, 24, 25);
         link_count = rf.processData(inodeData, 26, 27);
         inode_data_blocks = rf.processData(inodeData, 28, 31);
-        for(int i = 0; i < 15; i++){
-            int offset = 40;
+        int offset = 40;
+        for(int i = 0; i < 15; i++){            
             inode_blocks[i] = rf.processData(inodeData, offset, offset+3);
             offset += 4;
         }

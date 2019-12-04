@@ -19,7 +19,7 @@ public class ReadFile {
         int readSet = 1024 * offset;
         system.seek(readSet);
         try{
-            system.read(data, 0, readSet);
+            system.readFully(data);
         }
         catch(IOException e){
             e.printStackTrace();
@@ -29,9 +29,19 @@ public class ReadFile {
     }
     
     public int processData(byte[] data, int start, int end){
-        String binary = convertByteArrayToBinaryString(data, start, end);
-        int decimal = convertBinaryStringToInteger(binary);
-        return decimal;
+        ByteBuffer buffer = ByteBuffer.wrap(data);
+        buffer.order(ByteOrder.LITTLE_ENDIAN);
+        switch(end-start+1){
+            case 1:
+                return buffer.get(start);
+            case 2:
+                return buffer.getShort(start);
+            case 4:
+                return buffer.getInt(start);
+            default:
+                break;
+        }
+        return 0;
     }
     
     public byte[] convertToLittleEndian(byte[] data){
